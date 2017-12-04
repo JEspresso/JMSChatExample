@@ -10,6 +10,7 @@ import javax.naming.*;
 //to a single topic*/
 public class Chat implements MessageListener {
 
+	//second commit
 	private TopicSession pubSession;
 	private TopicPublisher publisher;
 	private TopicConnection connection;
