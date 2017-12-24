@@ -7,6 +7,12 @@ import javax.jms.QueueConnectionFactory;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
+//This information can logged on application startup, indicating the JMS provider
+//and version numbers
+
+//It is particularly useful for products or applications that may use multiple 
+//providers
+
 public class MetaData {
 	
 	public static void main(String args[]) {
