@@ -4,6 +4,9 @@ import java.io.*;
 import javax.jms.*;
 import javax.naming.*;
 
+/*	The role of the QLender class is to listen for loan requests
+ * */
+
 public class QLender implements MessageListener {
 
 	private QueueConnection qConnect = null;
