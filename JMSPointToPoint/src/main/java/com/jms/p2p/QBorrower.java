@@ -2,6 +2,7 @@ package com.jms.p2p;
 
 import java.io.*;
 import java.util.StringTokenizer;
+
 import javax.jms.*;
 import javax.naming.*;
 
@@ -144,10 +145,30 @@ public class QBorrower {
 			 * 	producers and consumers. 
 			 * 
 			 * 	We specify the filter when creating the QueueReceiver indicating that we only want to receive messages when the JMSCorrelationID is 
-			 * 	equal to the original JMSMessageID. */
-			String filter = "JMSCorrelationID = '" + mapMessage.getJMSCorrelationID() + "'";
-			QueueReceiver queueReceiver = qSession.createReceiver(responseQ, filter);
+			 * 	equal to the original JMSMessageID. 
+			 * 	
+			 * 	Message producer, QBorrower expects the response about whether or not the loan was approved by creating a message selector based on 
+			 * 	the JMSCorrelationID message property * */
 			
+			/*	Although JMSMessageID is typically used to identify the unique message, it is certainly not a requirement.
+			 * 	You can use anything that can correlate the request and reply messages. 
+			 * 		
+			 * 	For example, as an alternative you could use the Java UUID class to generate a unique ID 
+			
+				mapMessage.setDouble("Salary", salary);
+				mapMessage.setDouble("Loan Amount", loanAmount);
+				mapMessage.setJMSReplyTo(responseQ);
+				
+				UUID uuid = UUID.randomUUID();
+				String uniqueId = uuid.toString();
+				mapMessage.setStringProperty("UUID", uniqueId); */
+			
+			String filter = "JMSCorrelationID = '" + mapMessage.getJMSCorrelationID() + "'";
+			
+			//filter = "JMSCorrelationID = '" + uniqueId + "'";
+			
+			QueueReceiver queueReceiver = qSession.createReceiver(responseQ, filter);
+
 			/*	Now that we have QueueReceiver, we can invoke the receive() method to do a blocking wait until the response message is received. 
 			 * 	In this case, we are using the overridden receive() method that accepts a timeout value in milliseconds */
 			TextMessage textMessage = (TextMessage)queueReceiver.receive(30000);
