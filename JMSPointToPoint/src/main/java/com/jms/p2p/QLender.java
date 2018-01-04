@@ -4,10 +4,7 @@ import java.io.*;
 import javax.jms.*;
 import javax.naming.*;
 
-/*	The role of the QLender class is to listen for loan requests on the loan request queue, determine if the salary meets the necessary business 
- * 	requirements, and finally send back the results to the borrower. 
- * 
- * 	In this example, QLender class is referred to as a "message listener" and, as such, implements the javax.jms.MessageListener interface and 
+/*	In this example, QLender class is referred to as a "message listener" and, as such, implements the javax.jms.MessageListener interface and 
  * 	overrides the onMessage() method. 
  * 
  * 	QLender class is an asynchronous message listener, meaning that unlike the QBorrower it will not block when waiting for messages. 
@@ -15,6 +12,11 @@ import javax.naming.*;
  * 	This is evident from the fact the QLender class implements the MessageListener interface and then overrides the onMessage() method. 
  * */
 
+/**
+ * @author Kevin
+ *	The role of the QLender class is to listen for loan requests on the loan request queue, determine if the salary meets the necessary business 
+ * 	requirements, and finally send back the results to the borrower.
+ */
 public class QLender implements MessageListener {
 
 	private QueueConnection qConnect = null;
