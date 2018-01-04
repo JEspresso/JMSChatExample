@@ -11,6 +11,11 @@ import javax.jms.TextMessage;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
+
+/**
+ * @author Kevin
+ *	LoanRequestQueueBrowser to browse LoanResponseQ
+ */
 public class LoanRequestQueueBrowser {
 	
 	public static void main(String args[]) {
@@ -22,7 +27,7 @@ public class LoanRequestQueueBrowser {
 			queueConnection.start();
 			
 			//	Establish session
-			Queue queue = (Queue)context.lookup("LoanRequestQ");
+			Queue queue = (Queue)context.lookup("LoanResponseQ");
 			QueueSession queueSession = queueConnection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
 			QueueBrowser queueBrowser = queueSession.createBrowser(queue);
 			
