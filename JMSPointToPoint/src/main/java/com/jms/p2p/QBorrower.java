@@ -6,6 +6,10 @@ import java.util.StringTokenizer;
 import javax.jms.*;
 import javax.naming.*;
 
+/**
+ * @author Kevin
+ *	QBorrower class is responsible for sending a loan request message to a queue containing a salary and amount
+ */
 public class QBorrower {
 
 	private QueueConnection qConnect = null;
@@ -15,9 +19,14 @@ public class QBorrower {
 	
 	//	JMS initialization: 
 	//	All JMS initialization is done in the QBorrower class constructor
+	/**
+	 * @param queueCF
+	 * @param requestQueue
+	 * @param responseQueue
+	 */
 	public QBorrower(String queueCF, String requestQueue, String responseQueue) {
 		try {
-			//	connect to the provider and get the JMS connection (create an InitialContext)
+			//	Connect to the provider and get the JMS connection (create an InitialContext)
 			//	The JMS connection information needed to connect to the JMS provider is specified in the jndi.properties file located in the classpath
 			Context context = new InitialContext();
 			
