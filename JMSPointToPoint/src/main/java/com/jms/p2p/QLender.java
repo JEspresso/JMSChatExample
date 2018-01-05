@@ -4,6 +4,8 @@ import java.io.*;
 import javax.jms.*;
 import javax.naming.*;
 
+import org.apache.log4j.Logger;
+
 /*	In this example, QLender class is referred to as a "message listener" and, as such, implements the javax.jms.MessageListener interface and 
  * 	overrides the onMessage() method. 
  * 
@@ -23,6 +25,7 @@ public class QLender implements MessageListener {
 	private QueueSession qSession = null;
 	private Queue requestQ = null;
 
+	final static Logger logger = Logger.getLogger(QLender.class);
 	
 	//	The constructor in the QLender class works in the same way as the constructor in the QBorrower class 
 	public QLender(String queueCF, String requestQueue) {
@@ -56,12 +59,12 @@ public class QLender implements MessageListener {
 			 * 
 			 * */
 			queueReceiver.setMessageListener(this);
-			System.out.println("Waiting for loan requests...");
-		} catch (JMSException ex) {
-			ex.printStackTrace();
+			logger.info("Message consumer is now waiting for loan requests...");
+		} catch (JMSException exc) {
+			logger.error(exc);
 			System.exit(1);
-		} catch (NamingException ex) {
-			ex.printStackTrace();
+		} catch (NamingException exc) {
+			logger.error(exc);
 			System.exit(1);
 		}
 	}
@@ -88,7 +91,7 @@ public class QLender implements MessageListener {
 				} else {
 					accepted = (salary / loanAmount) > .33;
 				}
-				System.out.println("" + "Percent = " + (salary / loanAmount) + ", loan is " + (accepted ? "Accepted!" : "Declined"));
+				logger.info("" + "Percent = " + (salary / loanAmount) + ", loan is " + (accepted ? "Accepted!" : "Declined"));
 
 				/* 	Again, to make this more failsafe, it would be better to check the JMS message type using the instanceof operator in the even that 
 				 * 	another message type was being sent to that queue 
@@ -131,12 +134,12 @@ public class QLender implements MessageListener {
 				QueueSender queueSender = qSession.createSender((Queue) mapMessage.getJMSReplyTo());
 				queueSender.send(textMessage);
 
-				System.out.println("\nWaiting for loan requests...");
-			} catch (JMSException ex) {
-				ex.printStackTrace();
+				logger.info("\nMessage consumer is now waiting for loan requests...");
+			} catch (JMSException exc) {
+				logger.error(exc);
 				System.exit(1);
-			} catch (Exception ex) {
-				ex.printStackTrace();
+			} catch (Exception exc) {
+				logger.error(exc);
 				System.exit(1);
 			}
 		}
@@ -145,8 +148,8 @@ public class QLender implements MessageListener {
 	private void exit() {
 		try {
 			qConnect.close();
-		} catch (JMSException ex) {
-			ex.printStackTrace();
+		} catch (JMSException exc) {
+			logger.error(exc);
 		}
 		System.exit(0);
 	}
@@ -163,8 +166,8 @@ public class QLender implements MessageListener {
 			queueCF = args[0];
 			requestQ = args[1];
 		} else {
-			System.out.println("Invalid arguments. Should be");
-			System.out.println("java QLender factory request_queue");
+			logger.info("Invalid arguments. Should be");
+			logger.info("java QLender factory request_queue");
 			System.exit(0);
 		}
 
@@ -173,12 +176,12 @@ public class QLender implements MessageListener {
 		try {
 			// run until enter is pressed
 			BufferedReader standardInput = new BufferedReader(new InputStreamReader(System.in));
-			System.out.println("QLender application started");
-			System.out.println("Press enter to quit application");
+			logger.info("Message consumer application started");
+			logger.info("Press enter to quit application");
 			standardInput.readLine();
 			qLender.exit();
-		} catch (IOException ex) {
-			ex.printStackTrace();
+		} catch (IOException exc) {
+			logger.error(exc);
 		}
 	}
 }
