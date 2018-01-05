@@ -7,10 +7,14 @@ import javax.jms.QueueConnectionFactory;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
+import org.apache.log4j.Logger;
+
 //This information can logged on application startup, indicating the JMS provider and version numbers
 //It is particularly useful for products or applications that may use multiple providers
 
 public class MetaData {
+	
+	final static Logger logger = Logger.getLogger(MetaData.class);
 	
 	public static void main(String args[]) {
 		try {
@@ -19,20 +23,20 @@ public class MetaData {
 			QueueConnection queueConnection = queueConnectionFactory.createQueueConnection();
 			ConnectionMetaData connectionMetaData = queueConnection.getMetaData();
 			
-			System.out.println("JMS Version: "  + connectionMetaData.getJMSMajorVersion() + "." + connectionMetaData.getJMSMinorVersion());
-			System.out.println("JMS Provider: " + connectionMetaData.getJMSProviderName());
-			System.out.println("JMSX Properties Supported: ");
+			logger.info("JMS Version\t:\t"  + connectionMetaData.getJMSMajorVersion() + "." + connectionMetaData.getJMSMinorVersion());
+			logger.info("JMS Provider\t:\t" + connectionMetaData.getJMSProviderName());
+			logger.info("JMSX Properties Supported: ");
 			
 			@SuppressWarnings("rawtypes")
 			Enumeration enumeration = connectionMetaData.getJMSXPropertyNames();
 			
 			while(enumeration.hasMoreElements()) {
-				System.out.println("\t-" + enumeration.nextElement());
+				logger.info("\t-" + enumeration.nextElement());
 			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
+			System.exit(1);
+		} catch (Exception exc) {
+			logger.error(exc);
 			System.exit(1);
 		}
 	}
-	
 }
