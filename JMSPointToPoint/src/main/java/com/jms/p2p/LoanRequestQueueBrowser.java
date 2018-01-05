@@ -11,12 +11,16 @@ import javax.jms.TextMessage;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
+import org.apache.log4j.Logger;
+
 
 /**
  * @author Kevin
  *	LoanRequestQueueBrowser to browse LoanResponseQ
  */
 public class LoanRequestQueueBrowser {
+	
+	final static Logger logger = Logger.getLogger(LoanRequestQueueBrowser.class);
 	
 	public static void main(String args[]) {
 		try {
@@ -36,13 +40,13 @@ public class LoanRequestQueueBrowser {
 			
 			while(enumeration.hasMoreElements()) {
 				TextMessage textMessage = (TextMessage)enumeration.nextElement();
-				System.out.println("Browsing: " + textMessage.getText());
+				logger.info("Browsing:\t" + textMessage.getText().toString());
 			}
 			queueBrowser.close();
 			queueConnection.close();
 			System.exit(0);
 		} catch (Exception exc) {
-			exc.printStackTrace();
+			logger.error(exc);			
 		}
 	}
 }
