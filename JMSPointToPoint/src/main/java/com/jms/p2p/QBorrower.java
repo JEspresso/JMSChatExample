@@ -6,6 +6,8 @@ import java.util.StringTokenizer;
 import javax.jms.*;
 import javax.naming.*;
 
+import org.apache.log4j.Logger;
+
 /**
  * @author Kevin
  *	QBorrower class is responsible for sending a loan request message to a queue containing a salary and amount
@@ -16,6 +18,8 @@ public class QBorrower {
 	private QueueSession qSession = null;
 	private Queue responseQ = null;
 	private Queue requestQ = null;
+	
+	final static Logger logger = Logger.getLogger(QBorrower.class);
 	
 	//	JMS initialization: 
 	//	All JMS initialization is done in the QBorrower class constructor
@@ -97,11 +101,11 @@ public class QBorrower {
 			 * 		-	JMS provider version 
 			 * 		-	JMSX property name extensions supported by the JMS provider */
 			
-		} catch (JMSException ex) {
-			ex.printStackTrace();
+		} catch (JMSException exc) {
+			logger.error(exc);
 			System.exit(1);
-		} catch (NamingException ex) {
-			ex.printStackTrace();
+		} catch (NamingException exc) {
+			logger.error(exc);			
 			System.exit(1);
 		}
 	}
@@ -221,9 +225,9 @@ public class QBorrower {
 			*	of coupling in the P2P model, at least from the payload perspective */
 			
 			if(textMessage == null) {
-				System.out.println("QLender not responding");
+				logger.info("Receiver not responding. There is no response message to return to producer" );
 			} else {
-				System.out.println("Loan request was " + textMessage.getText());
+				logger.info("Loan request was " + textMessage.getText());
 			}
 		} catch (JMSException ex) {
 			ex.printStackTrace();
@@ -234,8 +238,8 @@ public class QBorrower {
 	private void exit() {
 		try {
 			qConnect.close();
-		} catch (JMSException ex) {
-			ex.printStackTrace();
+		} catch (JMSException exc) {		
+			logger.error(exc);
 		}
 		System.exit(0);		
 	}
@@ -245,7 +249,7 @@ public class QBorrower {
 			2. The JNDI name of the loan request queue
 			3. The JNDI name of the loan response queue where the response from the QLender class will be received */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		
 		String queueCF = null;
 		String requestQ = null;
 		String responseQ = null;
@@ -256,8 +260,8 @@ public class QBorrower {
 			requestQ = args[1];
 			responseQ = args[2];
 		} else {
-			System.out.println("Invalid arguments. Should be: ");
-			System.out.println("java QBorrower factory requestQueue responseQueue");
+			logger.info("Invalid arguments. Should be: ");
+			logger.info("java QBorrower factory requestQueue responseQueue");
 			System.exit(0);
 		}
 		
@@ -267,14 +271,14 @@ public class QBorrower {
 		try {
 			//read all standard input and send it as a message
 			BufferedReader standardInput = new BufferedReader(new InputStreamReader(System.in));
-			System.out.println("QBorrower application started");
-			System.out.println("Press Enter to quit the application");
-			System.out.println("Enter: Salary, Loan Amount");
-			System.out.println("\ne.g. 50000, 120000");
+			logger.info("Message producer application started");
+			logger.info("Press Enter to quit the application");
+			logger.info("Enter: Salary, Loan Amount");
+			logger.info("\ne.g. 50000, 120000");
 			
 			//Start a loop that reads the salary and loan amount into the class from the console
 			while(true) {
-				System.out.println("> ");
+				logger.info("> ");
 				String loanRequest = standardInput.readLine();
 				
 				//Parse the deal description (salary and loan amount input data)
@@ -290,8 +294,8 @@ public class QBorrower {
 				//Invoke the sendLoanRequest() method to send the loan requests to the queue and wait for the response from the QLender class
 				qBorrower.sendLoanRequest(salary, loanAmount);
 			}
-		} catch (IOException ex) {
-			ex.printStackTrace();
+		} catch (IOException exc) {
+			logger.error(exc);
 		}
 	}
 }
