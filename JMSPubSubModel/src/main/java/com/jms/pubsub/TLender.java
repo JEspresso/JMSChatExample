@@ -90,8 +90,7 @@ public class TLender {
 
 			logger.info("Topic publisher application started");
 			logger.info("Press enter to quit application");
-			logger.info("Enter: Rate");
-			logger.info("\nE.g. 6.8");
+			logger.info("Enter: Rate (e.g. 6.8)");
 
 			while (true) {
 				logger.info("> ");
