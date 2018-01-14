@@ -177,10 +177,130 @@ public class TBorrower implements MessageListener {
  *================================================================================================================================================ 	
  * 	Dynamic vs Administered Subscribers
  *================================================================================================================================================ 	
- * 	
- * 	
+ * 	As above, we have created a durable subscriber namesed Borrower1	
  * 		
+ * 		TopicSubscriber topicSubscriber = topicSession.createDurableSubscriber(topic, "Borrower1");
  * 	
+ * 	Some JMS providers allow you to statically define the durable subscriber in the configuration file or the admin interface. 
+ * 	In this case, the durable subscriber is said to be an "administered durable subscriber". 
  * 	
+ * 	This means that the durable subscriber is statically defined and known by the JMS provider. 
  * 	
- * */
+ * 	However, suppose you needed to produce a temporary durable subscriber, say to gather mortgage rates for the next one or two days to do some 
+ * 	trend analysis. It would be silly to have to modify the JMS provider to have to modify the JMS configuration files for this simple request.
+ * 	
+ * 	The JMS specification allows for durable subscribers to be defined dynamically at run-time, without having to statically define them in your 
+ * 	JMS configuration files. 
+ * 	
+ * 	These types of durable subscribers are known as "dynamic durable subscribers" - for example, if we were to define a new durable subscriber 
+ * 	called BorrowerA, we write
+ * 		
+ * 		TopicSubscriber topicSubscriber = topicSession.createDurableSubscriber(topic, "BorrowerA");
+ * 	
+ * 	In this case, BorrowerA durable subscriber is not defined in the JMS provider, and, therefore, is not an administered durable subscriber. 
+ * 	
+ * 	However, once the above line of code executes, a new durable subscriber called BorrowerA is created is created in the JMS provider, and, 
+ * 	therefore, will receive all rates published to the topic, whether the subscriber is active or not. 
+ * 	
+ * 	The subscriber will remain a durable subscriber unti it is unsubscribed. 
+ * 	
+ * 	Although this feature provides a great deal of flexibility, it also comes with a price - Each durable subscriber, whether it is administered or 
+ * 	dynamic, will receive a copy of the message published to the topic. 
+ * 	
+ * 	This means that when the subscriber is not active, those messages are being stored for each durable subscriber. From a capacity planning 
+ * 	perspective, dynamic durable subscribers are somewhat dangerous in that it is difficult to control the number of durable subscribers using the 
+ * 	system (although this can be monitored through an admin console, depending on the JMS provider and monitoring software that you are using). 
+ * 	
+ * 	Imagine, for a moment that 100 new dynamic durable subscribers were suddenly created to start receiving every mortgage rate or stock price to 
+ * 	perform trend analysis. Then, once that analysis was complete, those 100 subscribers were retired but not unsubscribed. This means that every 
+ * 	mortgage rate and every stock price update would be stored for those retired dynamic durable subscribers forever or until the machine hosting 
+ * 	the JMS datastore ran out of storage/memory.
+ * 	
+ * 	There are a few methods a middleware administrator can use for addressing this issue in production environments to help control machine 
+ * 	resources and capacity. 
+ * 		
+ * 	You can prohibit dynamic durable subscribers in your mortgage system by frequently (once a minute, or once an hour, etc) running a control 
+ * 	program or database script that compares the known durable subscribers with those registered with the JMS provider. 
+ * 	
+ * 	Each JMS provider will store the messages in either a database or filesystem. 
+ * 	
+ * 	For example, OpenJMS - an open source JMS provider useful for testing and training purposes uses a JDBC 2.0 compliant database to store 
+ * 	messages - refer to OpenJMS example
+ * 	
+ * 	For pub/sub messaging, the CONSUMERS table is used to hold durable subscribers and the MESSAGE_HANDLES table is used to link the messages to 
+ * 	the consumers. 
+ * 	
+ * 	Given this schema, a middleware administrator can write a simple database script or program to query for any durable subscribers in the 
+ * 	CONSUMER table that are not in the administered list of subscribers, and simply delete them from the JMS provider database (along with the 
+ * 	corresponding messages in the MESSAGE_HANDLE table). 
+ * 	
+ * 	Another solution is to provide for the creation of dynamic durable subscribers, but only have them active for a limited period of time e.g. 
+ * 	two days, one week, etc. 
+ * 	
+ * 	If you notice in the previous MySQL database schema definitions for OpenJMS, the CONSUMERS table has a created column containing the TIMESTAMP 
+ * 	(represented as LONG in MILLISECONDS) of when that durable subscriber was first created. 
+ * 	
+ * 	You can easily create a database script or control program that executes each evening, removing any dynamic durable subscribers that were 
+ * 	created a specified number of days ago. With this method, you can allow for flexibility of dynamic durable subscribers if the business rules or 
+ * 	use cases call for them, but limit the lifespan of those dynamic durable subscribers to avoid filling up the storage capacity of the database. 
+ * 	
+ * 	A less aggressive approach would be to leverage the database schema of the JMS provider to create a report of the number of dynamic durable 
+ * 	subscribers and current message count using the tables described earlier. 
+ * 	
+ * 	This report would show any significantly large message count for a particular subscriber, indicating that the durable subscriber is possibly 
+ * 	retired or nolonger interested in the data. 
+ * 	
+ * 	The dynamic subscriber would then be flagged as a possible candidate for removal/message cleanup. 
+ * 	
+ *=====================================================================================================================================================
+ *	Unsubscribing Dynamic Durable Subscriber
+ *=====================================================================================================================================================
+ *	
+ *	private void exit() {
+ *		try {
+ *			subscriber.close();
+ *			topicSession.unsubscribe("BorrowerA");
+ *			topicConnection.close();
+ *		} catch(javax.jms.JMSException exc) {
+ *			exc.printStackTrace();
+ *		} 
+ *		System.exit(0);
+ *	}
+ *	
+ *	For nondurable subscribers, calling the close() method on the TopicSubscriber class is sufficient. 
+ *	
+ *	For durable subscriptions, there is an unsubscribe(String name) method on the TopicSession object, which takes the subscription name as its 
+ *	parameter. 
+ *	
+ *	This informs the JMS provider that it should nolonger store messages on behalf of this client. 
+ *	
+ *	You cannot call the unsubscribe() method without first closing the subscription (you will get an exception if you do this). 
+ *	
+ *	Hence, both methods need to be called for durable subscriptions.
+ *	
+ *=====================================================================================================================================================
+ *	Temporary Topics
+ *=====================================================================================================================================================
+ *	A temporary topic is a topic that is dynamicallt created by a JMS provider, using the createTemporaryTopic() method of the TopicSession object.
+ *	
+ * 	A temporary topic is associated with the connection that belongs to the TopicSession that created it. 
+ * 	
+ * 	It is only active for the duration of the connection and it is guaranteed to be unique across all connections. 
+ * 	
+ * 	Since it is temporary, it cannot be durable - it lasts only as long as its associated client connection is active. 
+ * 	
+ * 	Since a temporary topic is unique across all client connections (it is obtained dynamically through a method call on a client's session object),  
+ * 	it is unavailable to other JMS clients unless the topic identity is transferred using the JMSReplyTo header. 
+ * 	
+ * 	While any client may publish messages on another client's temporary topic, only the sessions that are associated with the JMS client connection 
+ * 	that created the temporary topic may subscribe to it. JMS clients can also publish messages to their own temporary topics. 
+ * 	
+ * 	A temporary topic allows a consumer to respond directly to a producer. In larger real-world applications, there may be many publishers and 
+ * 	subscribers exchanging messages across many topics. 
+ * 	
+ * 	A message may represent a workflow, which may take multiple hops through various stages of a business process. In that type of scenario, the 
+ * 	consumer of a message may never respond directly to the producer that originated the message.
+ * 	
+ * 	It is more likely that the respond to the message will be forwarded to some other process. 
+ * 	
+ * 	Thus, the JMSReplyTo header can be used as a place to specify a forwarding address, rather than the destination address of the original sender. */
