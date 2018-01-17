@@ -25,25 +25,32 @@ import com.opencsv.CSVReader;
 @RestController
 public class RealEstatesController {
 
+	/**
+	 * TODO Put here a description of what this method does.
+	 * Method createRealEstateTxnList() to expose CSV data via a REST end point in JSON format
+	 * @return
+	 * @throws Exception
+	 */
 	@SuppressWarnings("rawtypes")
 	@RequestMapping(value = "/realEstateTxns", method = RequestMethod.GET, headers = "Accept=application/json")
-	public List getList() throws Exception {
+	public List createRealEstateTxnList() throws Exception {
 		
-		List realEstateTxnList = new ArrayList();
-		realEstateTxnList = createRealEstateTxnList();
+		List realEstateTxnList = new ArrayList();		
+		realEstateTxnList = getList();
 		
 		return realEstateTxnList;
 	}
 
 	/**
 	 * TODO Put here a description of what this method does.
-	 * Method createRealEstateTxnList() locates the CSV file, parses it and returns file content as an ArrayList in
-	 * JSON format
+	 * Method getList() locates the CSV file, parses it and returns file content as an ArrayList in
+	 * JSON format. It is made static because we do not an instance of the controller class RealEstatesController 
+	 * so as to invoke it
 	 * @return
-	 * @throws IOException
+	 * @throws IOException 
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static ArrayList<RealEstatesBean> createRealEstateTxnList() throws IOException {
+	public static ArrayList<RealEstatesBean> getList() throws IOException {
 
 		//Create an ArrayList to hold the CSV data
 		ArrayList<RealEstatesBean> realEstateTxnList = new ArrayList();
